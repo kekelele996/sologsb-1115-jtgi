@@ -7,6 +7,7 @@ import { specimenStore } from '@/stores/specimenStore'
 import { siteStore } from '@/stores/siteStore'
 import { storageStore } from '@/stores/storageStore'
 import { determinationStore } from '@/stores/determinationStore'
+import { mergeStore } from '@/stores/mergeStore'
 import '@/styles/index.css'
 
 /** 启动时：写入示例数据（仅首次）→ 记录 schemaVersion → 从 IndexedDB 水合全部 store */
@@ -17,6 +18,7 @@ async function bootstrap(): Promise<void> {
   await specimenStore.getState().hydrate()
   await storageStore.getState().hydrate()
   await determinationStore.getState().hydrate()
+  await mergeStore.getState().hydrate()
 }
 
 void bootstrap()

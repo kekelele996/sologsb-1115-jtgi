@@ -6,3 +6,13 @@ export { STORAGE_METHODS } from './storage'
 export type { Storage, StorageMethod } from './storage'
 export { CONFIDENCES } from './determination'
 export type { Determination, Confidence } from './determination'
+export { MERGE_FIELDS, fieldLabelOf } from './merge'
+export type {
+  FieldBatch,
+  FieldSpecimen,
+  FieldConflict,
+  MergeLedger,
+  MergeResult,
+  MergeableFieldKey,
+  Renumbering
+} from './merge'
