@@ -8,7 +8,8 @@ export const SCHEMA_VERSION = 2
 
 export interface MetaRow {
   key: string
-  value: number
+  /** schemaVersion 为数字；合并报告等存档为对象 */
+  value: unknown
 }
 
 /** Dexie 封装：标本 / 采集地 / 保藏位置 / 鉴定记录 四张业务表 + 元数据表 */
@@ -75,6 +76,17 @@ export async function putRows<T extends object>(table: Table<T, string>, rows: T
 /** 删除一条记录 */
 export async function deleteRow<T extends object>(table: Table<T, string>, id: string): Promise<void> {
   await table.delete(id)
+}
+
+/** 读取 meta 表中的存档（如合并报告） */
+export async function getMeta<T>(key: string): Promise<T | null> {
+  const row = await db.meta.get(key)
+  return (row?.value as T) ?? null
+}
+
+/** 写入 meta 表存档 */
+export async function setMeta(key: string, value: unknown): Promise<void> {
+  await db.meta.put({ key, value })
 }
 
 /**

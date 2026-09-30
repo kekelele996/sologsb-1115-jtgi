@@ -10,7 +10,8 @@ const NAV = [
   { to: '/collect', label: '采集登记', hint: '同批次多份录入' },
   { to: '/sites', label: '采集地管理', hint: '坐标校验 / 合并' },
   { to: '/determination', label: '鉴定工作流', hint: '待鉴定队列' },
-  { to: '/storage', label: '保藏柜位图', hint: '柜-屉-盒-位' }
+  { to: '/storage', label: '保藏柜位图', hint: '柜-屉-盒-位' },
+  { to: '/merge', label: '外业批次', hint: '离线登记 / 合并重试' }
 ]
 
 /** 应用外壳：左侧导航 + 顶部状态条 + 路由出口 */

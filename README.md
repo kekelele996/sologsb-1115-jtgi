@@ -66,9 +66,9 @@ sologsb-1115/
 │       ├── stores/             # specimenStore / siteStore / storageStore / determinationStore（Zustand）
 │       ├── components/common/  # SpecimenCard / StatusTag / CabinetGrid / SitePicker
 │       ├── hooks/              # usePersistentStore / useSpecimenFilter
-│       ├── pages/              # SpecimensPage / SitesPage / CollectPage / DeterminationPage / StoragePage
+│       ├── pages/              # SpecimensPage / SitesPage / CollectPage / DeterminationPage / StoragePage / MergePage
 │       ├── router/index.tsx
-│       └── utils/              # codec.ts / export.ts / id.ts
+│       └── utils/              # codec.ts / export.ts / id.ts / merge.ts
 ```
 
 ## 五、数据模型与存储
@@ -80,7 +80,7 @@ sologsb-1115/
 | Storage 保藏位置 | 保藏方式、柜/抽屉/盒/插位序号、入柜日期、经手人 | `storages` |
 | Determination 鉴定记录 | 鉴定人、日期、结论（学名）、依据文献、置信度、是否需复核 | `determinations` |
 
-- 数据库名 `gbinsectlog`，`meta` 表保存 `schemaVersion`；
+- 数据库名 `gbinsectlog`，`meta` 表保存 `schemaVersion` 与外业批次合并存档（`batch:<batchId>`，幂等键）；
 - `version(2)` 升级迁移会为历史标本补齐默认采集方式（扫网）；
 - 标本编号规则：`采集地代码-年份-流水号`（如 `QLB-2026-0007`），提交时自动分配并查重；
 - 数据仅存于浏览器本地，容器无状态、不挂载命名卷。
@@ -94,6 +94,7 @@ sologsb-1115/
 | `/sites` | 采集地管理：经纬度格式校验、各地采集次数统计、50 米内邻近采集地提示与一键合并 |
 | `/determination` | 鉴定工作流：待鉴定队列逐条处理，落鉴定记录并自动推进标本状态（已鉴定 / 待复核） |
 | `/storage` | 保藏柜位图：柜-抽屉-盒-位三级展开，空位/占用一目了然，拖拽入柜，重复占用给出占用提示 |
+| `/merge` | 外业批次合并：离线登记标本（手工排号）整批导入，撞号重新取号并随迁鉴定/柜位，馆方已鉴定/入柜内容受保护不被盖掉，字段冲突保留两版标来源由编目员挑选，整批事务失败回滚、幂等重试不重复 |
 
 ## 七、业务约定
 
@@ -101,3 +102,15 @@ sologsb-1115/
 - 坐标 50 米内视为同一采集地，页面上给出合并提示，合并会把原采集地标本自动改挂；
 - 鉴定记录提交后自动把标本状态推进为「已鉴定」，勾选「需复核」则置为「待复核」；
 - 同一柜位（柜-屉-盒-位）只允许一份标本，冲突时列出已有标本编号。
+
+## 八、外业离线批次合并
+
+林区无信号时外业分队在 `/merge` 页离线登记标本（手工排号，允许与馆内编号冲突），回站后把整批 JSON 合并进馆内编目。
+
+- **批次结构**：`batchId`（幂等键）+ `team` + `specimens` + `determinations` + `storages`，导出为 JSON 文件；
+- **撞号重新取号**：外业编号与馆内编号冲突（`id` 不同）时，按「采集地代码-年份」自动分配下一个流水号，采集信息保留，附带的鉴定记录与保藏柜位随新标本 `id` 一并迁入，不会出现柜位/鉴定记录指不到标本；
+- **馆方保护**：馆内标本已有鉴定记录或保藏位置时，外业版本不覆盖、不并入，馆方权威内容保留不动；
+- **字段级冲突**：`id` 命中但馆内未鉴定/入柜、且两边字段不一致时，逐字段列出「馆方版本 / 外业版本」并标来源，编目员逐字段（或整版）挑选一版后写入馆内；
+- **事务与重试**：整批合并在一个 Dexie 读写事务内完成，任一步失败全部回滚；批次存档写入 `meta` 表（键 `batch:<batchId>`），同一批重复导入被幂等拦截，不会产生重复标本，失败后可直接重试。
+
+合并判定优先级：`id` 命中 → 馆方保护 / 字段冲突 / 一致；否则编号命中 → 撞号重新取号；否则 → 新标本入库。
