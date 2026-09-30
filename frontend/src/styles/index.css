@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  background: #f5f8f6;
+  color: #1f2d24;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn border-field-600 bg-field-600 text-white hover:bg-field-700;
+  }
+  .btn-ghost {
+    @apply btn border-slate-300 bg-white text-slate-700 hover:border-field-500 hover:text-field-700;
+  }
+  .btn-danger {
+    @apply btn border-rose-300 bg-white text-rose-600 hover:bg-rose-50;
+  }
+  .field-input {
+    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-field-500;
+  }
+  .field-label {
+    @apply mb-1 block text-xs font-medium text-slate-500;
+  }
+  .panel {
+    @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+  }
+  .page-title {
+    @apply text-xl font-semibold text-slate-800;
+  }
+  .page-sub {
+    @apply mt-1 text-sm text-slate-500;
+  }
+}
